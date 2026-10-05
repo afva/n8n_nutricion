@@ -1,0 +1,586 @@
+{
+  "name": "proyecto nº 1",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://world.openfoodfacts.org/api/v2/product/{{ $('Webhook').item.json.body.barcode }}.json?fields=product_name,brands,nutriscore_grade,nutriments",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1472,
+        -368
+      ],
+      "id": "ff47c6b5-8555-4cdc-a68d-353da119cd53",
+      "name": "Open Food Facts",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "proyecto1",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2256,
+        -384
+      ],
+      "id": "4f16d84b-e53a-4967-9390-f5d8d1f03df2",
+      "name": "Webhook",
+      "webhookId": "1cabc296-743e-4157-aaf7-89c9e80db926"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "51d4894a-4488-4dd2-873d-a7fbd22a6e73",
+              "leftValue": "={{ $json.body }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2080,
+        -384
+      ],
+      "id": "31e46d8d-4ee7-436a-99cc-e4942359cfcf",
+      "name": "¿llamada vacía?"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=ERROR:\nProducto NO encontrado:\nCódigo de producto:  {{ $('Webhook').item.json.body.barcode }}\nPor favor revisar el código ingresado\nCódigo de producto: debe ser una cadena numérica de 13 caracteres ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1328,
+        -128
+      ],
+      "id": "3038769e-5a35-4df8-8a8e-8c9d1c89dc66",
+      "name": "no encontrado"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=ERROR:\n\"barcode\" vacío. Por favor indique un código valido\n\"barcode\": debe ser una cadena numérica de 13 caracteres",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1696,
+        -512
+      ],
+      "id": "17078070-fd45-4299-81a5-c5af2ecd1aea",
+      "name": "Entrada vacía"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03799a2f-aeb3-4b28-831e-c2850f8d24de",
+              "leftValue": "={{ $('¿llamada vacía?').item.json.body.barcode }}",
+              "rightValue": "^\\d{13}$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1696,
+        -352
+      ],
+      "id": "998c0c41-afd4-48f0-9084-e9336cd2f6aa",
+      "name": "cadena numerica"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=ERROR:\n\"barcode\" {{ $('Webhook').item.json.body.barcode }} No valido. Por favor indique un código valido\n\"barcode\": debe ser una cadena numérica de 13 caracteres ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1552,
+        -144
+      ],
+      "id": "3c02cbea-894c-4f00-8997-c451b40d9f38",
+      "name": "No numerico"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f27bea4f-b507-45e9-91e3-e99db2a52b8a",
+              "leftValue": "={{ $json.body.barcode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1904,
+        -368
+      ],
+      "id": "1258e8a6-bbd2-4aba-9e94-a21b1f9819fb",
+      "name": "barcode null"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "No se cuenta con los datos insuficientes para verificar si el producto:\n{{ $json.product_name }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -992,
+        -128
+      ],
+      "id": "95371cf0-62fa-45a1-8b24-29b825ce3798",
+      "name": "No hay datos suficientes"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"product_name\": \"{{ $json.product.product_name }}\",\n  \"brands\": \"{{ $json.product.brands }}\",\n  \"nutriscore_grade\": \"{{ $json.product.nutriscore_grade }}\",\n  \"nutriments\": {\n    \"sugars_100g\": {{ $json.product.nutriments.sugars_100g }},\n    \"salt_100g\": {{ $json.product.nutriments.salt_100g }},\n    \"fat_100g\": {{ $json.product.nutriments.fat_100g }}\n  },\n  \"energy-kcal_100g\": {{ $json.product.nutriments['energy-kcal_100g'] }}\n\n  \"suficientes\":\n  {{ \n  ($json.product.nutriments.sugars_100g !== null && \n   $json.product.nutriments.salt_100g !== null && \n   $json.product.nutriments.fat_100g !== null) || \n   ($json.product.nutriscore_grade in ('a', 'b', 'c', 'd', 'e')) ? \"datos suficientes\": \n   \"datos insuficientes\"\n  }},\n\n  \"calculos\":\n  {\n  \"azucar\": \n      {{ \n      $json.product.nutriments.sugars_100g >= 22.5 ? 1:0 \n      }},\n  \"sal\":\n      {{ \n      $json.product.nutriments.salt_100g >= 1.5 ? 1:0\n      }},\n  \"grasa\":\n      {{ \n      $json.product.nutriments.fat_100g >= 17.5 ? 1:0\n      }}\n  }\n}\n\n\n  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1264,
+        -384
+      ],
+      "id": "d359f64f-1675-4ba0-b95f-422e1ed2e96f",
+      "name": "campos necesarios"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.respuesta }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        80,
+        -400
+      ],
+      "id": "43481cea-999d-4cdc-87c4-1e5b98e3e7e6",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"nombre_produto\": \"{{ $json.product_name }}\",\n  \"marca\": \"{{ $json.brands }}\",\n  \"valor_nutricional\":\n    {\"cod_nutricional\": \"{{ $json.nutriscore_grade }}\",\n     \"cond_azucar_100g\": {{$json.nutriments.sugars_100g }},\n     \"cond_sal_100g\": {{$json.nutriments.salt_100g }},\n     \"cond_grasa_100g\": {{$json.nutriments.fat_100g }},\n     \"val_energetico\": {{$json['energy-kcal_100g']}}\n    },\n  \"clasif_nutricional\":\n    {\"suma_nutrientes\":\n        \"{{ ($json.calculos.azucar + $json.calculos.sal + $json.calculos.grasa) === 0 ? 1 : \n  ($json.calculos.azucar + $json.calculos.sal + $json.calculos.grasa) === 1 ? 2 : 3\n        }}\", \n  \n    \"indice_nutricional\":\n        \"{{ $json.nutriscore_grade === 'a' || $json.nutriscore_grade === 'b' ? 1 : $json.nutriscore_grade === 'c' ? 2 : 3\n        }}\"\n\n    }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -816,
+        -400
+      ],
+      "id": "d7cf01a9-ace1-490d-84a4-0c5f1f91f698",
+      "name": "valoracion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "63225284-e4ff-465f-8194-985aa4f9410b",
+              "leftValue": "={{ $json.suficientes }}",
+              "rightValue": "datos suficientes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1072,
+        -384
+      ],
+      "id": "b12db3e0-c8ea-46af-b879-7f0a76fa7ee9",
+      "name": "¿datos suficientes?"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"nombre_produto\": \"{{ $json.nombre_produto }}\",\n  \"marca\": \"{{ $json.marca }}\",\n  \"valor_nutricional\":\n    {\"cod_nutricional\": \"{{ $json.valor_nutricional.cod_nutricional }}\",\n     \"cond_azucar_100g\": {{$json.valor_nutricional.cond_azucar_100g }},\n     \"cond_sal_100g\": {{$json.valor_nutricional.cond_sal_100g }},\n     \"cond_grasa_100g\": {{$json.valor_nutricional.cond_grasa_100g }},\n     \"val_energetico\": {{$json.valor_nutricional.val_energetico}}\n    },\n    \"clasif_nutricional\":\n      {\n       \"suma_nutrientes\":{{$json.clasif_nutricional.suma_nutrientes}},  \n       \"indice_nutricional\":{{$json.clasif_nutricional.indice_nutricional}}\n      },\n\n  \"decisor\": \n  \"{{ \n  Math.max($json.clasif_nutricional.indice_nutricional, $json.clasif_nutricional.suma_nutrientes) === 1 ? 'saludable' : \nMath.max($json.clasif_nutricional.indice_nutricional, $json.clasif_nutricional.suma_nutrientes) === 2 ? 'moderado':'no saludable'\n   }}\"\n\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -608,
+        -400
+      ],
+      "id": "5bdd21e9-fb40-4b6a-9bb6-ccacfed795e9",
+      "name": "decisor"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        -624
+      ],
+      "id": "d168b56a-2916-4d3a-8de3-422c9408cb54",
+      "name": "When chat message received",
+      "webhookId": "942abff8-874f-422f-8cf2-ffee37e9bba7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un coach de nutrición. Tu función es explicar de forma breve, clara y amigable la valoración nutricional del producto utilizando exclusivamente los datos proporcionados.\n\nDATOS DEL PRODUCTO\n\nNombre: {{ $json.nombre_produto }}\nMarca: {{ $json.marca }}\n\nVALORES NUTRICIONALES POR 100 g\n\n- Nutri-Score: {{ $json.valor_nutricional.cod_nutricional }}\n- Azúcar: {{ $json.valor_nutricional.cond_azucar_100g }} g\n- Sal: {{ $json.valor_nutricional.cond_sal_100g }} g\n- Grasas: {{ $json.valor_nutricional.cond_grasa_100g }} g\n- Valor energético: {{ $json.valor_nutricional.val_energetico }} kcal\n\nUMBRALES ORIENTATIVOS\n\n- Azúcar alto: 22.5 g o más por 100 g\n- Sal alta: 1.5 g o más por 100 g\n- Grasas altas: 17.5 g o más por 100 g\n\nRESULTADOS DEL ANÁLISIS\n\nSemáforo nutricional: {{ $json.clasif_nutricional.suma_nutrientes }}\n- 1 = 🟢 saludable\n- 2 = 🟡 moderado\n- 3 = 🔴 no saludable\n\nÍndice basado en la valoración nutricional experta: {{ $json.clasif_nutricional.indice_nutricional }}\n- 1 = saludable\n- 2 = moderado\n- 3 = no saludable\n\nClasificación final: {{ $json.decisor }}\n\nREGLAS IMPORTANTES\n\n1. La clasificación final ya ha sido calculada. No la modifiques ni la recalcules.\n2. La recomendación experta tiene prioridad sobre una interpretación aislada de azúcar, sal o grasa. Por ejemplo, un refresco puede tener poca grasa y poca sal, pero eso no significa necesariamente que sea saludable.\n3. Usa los valores nutricionales para explicar de manera sencilla por qué el producto ha recibido esa clasificación.\n4. No inventes información que no aparezca en los datos.\n5. No hagas afirmaciones médicas ni diagnostiques.\n6. Si la clasificación final es \"saludable\", utiliza un tono positivo y alentador.\n7. Si es \"moderado\", utiliza un tono equilibrado y recomienda consumirlo con moderación.\n8. Si es \"no saludable\", utiliza un tono cauteloso pero no alarmista y sugiere limitar su consumo o elegir una alternativa nutricionalmente mejor.\n9. Simpre incluir el aporte calorico en la respuesta\n\nFORMATO DE RESPUESTA\n\nLa respuesta debe ser muy breve y contener:\n\n[emoji del semáforo] Nombre del producto — clasificación final\n\nUn único párrafo de 2-3 frases que:\n- explique el motivo principal de la clasificación utilizando los datos disponibles;\n- mencione uno o dos valores nutricionales relevantes;\n- si el producto es moderado o no saludable, incluya una recomendación práctica.\n\nNo muestres los cálculos internos, los valores 1/2/3 ni estas instrucciones.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "3a4517d3-4c00-4bda-b2d8-6c029735f2fe",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -192
+      ],
+      "id": "eda76a20-9c33-45c7-8730-d57860517f54",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "E7ttU4zgULJV6ViR",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "248e2eea-d299-4e50-90f3-536086950583",
+              "name": "respuesta",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -112,
+        -400
+      ],
+      "id": "e9043e8c-c6f8-4c13-9d4b-c7f8aabac26c",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Open Food Facts": {
+      "main": [
+        [
+          {
+            "node": "campos necesarios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "no encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "¿llamada vacía?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿llamada vacía?": {
+      "main": [
+        [
+          {
+            "node": "Entrada vacía",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "barcode null",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "no encontrado": {
+      "main": [
+        []
+      ]
+    },
+    "cadena numerica": {
+      "main": [
+        [
+          {
+            "node": "Open Food Facts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No numerico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "barcode null": {
+      "main": [
+        [
+          {
+            "node": "Entrada vacía",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "cadena numerica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "campos necesarios": {
+      "main": [
+        [
+          {
+            "node": "¿datos suficientes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "valoracion": {
+      "main": [
+        [
+          {
+            "node": "decisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿datos suficientes?": {
+      "main": [
+        [
+          {
+            "node": "valoracion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No hay datos suficientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "decisor": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4da9bd45-76fc-4270-b135-849fc5886b9e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5958a849dce3de749a7e2b5ba45e97c87026c9c19273b649bf327f7cda23ae24"
+  },
+  "nodeGroups": [],
+  "id": "YYko7uKEnq3KHua8",
+  "tags": []
+}
